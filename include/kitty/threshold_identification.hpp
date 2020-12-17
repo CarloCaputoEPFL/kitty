@@ -36,6 +36,7 @@
 #include "traits.hpp"
 #include "isop.hpp"
 #include "properties.hpp"
+#include "implicant.hpp"
 
 namespace kitty
 {
@@ -121,8 +122,8 @@ bool is_threshold( const TT& tt, std::vector<int64_t>* plf = nullptr )
   set_add_rowmode( lp, TRUE ); /* makes building the model faster if it is done rows by row */
 
   //I take on and off set
-  std::vector<cube> on_set = isop( mytt );
-  std::vector<cube> off_set = isop( unary_not( mytt ) );
+  std::vector<cube> on_set = get_prime_implicants_morreale ( mytt );
+  std::vector<cube> off_set = get_prime_implicants_morreale ( unary_not( mytt ) );
 
   //Constraints for on_set
   for ( cube i : on_set )
