@@ -100,7 +100,7 @@ bool is_threshold( const TT& tt, std::vector<int64_t>* plf = nullptr )
 
   //creating lp
 
-  lprec* lp;
+  lprec* lp=NULL;
   int Ncol, *colno = NULL, j, sol=0;
   REAL* row = NULL;
   Ncol = num_vars + 1; //+1 to invlude T
@@ -175,13 +175,13 @@ if ( true)
   //all greater than 0
   for ( int i = 1; i < num_vars + 2; i++ )
   {
-    for ( int j = 0; j< num_vars+2 ; j++){
-      row[j]=0.0;
+    for ( int l = 0; l< num_vars+2 ; l++){
+      row[l]=0.0;
     }
     row[i]=1.0;
     add_constraint(lp,row,GE,0.0);
   }
-
+  set_add_rowmode( lp, FALSE );
  // print_lp(lp);
 
 
@@ -196,7 +196,7 @@ if ( true)
   }
   set_obj_fnex( lp, Ncol, row, colno );
 
-  set_add_rowmode( lp, FALSE );
+
 
   /* set the object direction to ìminimze */
   set_minim( lp );
