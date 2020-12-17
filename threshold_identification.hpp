@@ -216,8 +216,8 @@ if ( true)
 /* free allocated memory */
  // if(row != NULL)
 //    free(row);
- // if(colno != NULL)
-  //  free(colno);
+  if(colno != NULL)
+    free(colno);
 
  if(lp != NULL) {
     /* clean up such that all used memory by lpsolve is freed */
