@@ -120,50 +120,51 @@ bool is_threshold( const TT& tt, std::vector<int64_t>* plf = nullptr )
     return false;
 
   set_add_rowmode( lp, TRUE ); /* makes building the model faster if it is done rows by row */
-
-  //I take on and off set
-  std::vector<cube> on_set = get_prime_implicants_morreale ( mytt );
-  std::vector<cube> off_set = get_prime_implicants_morreale ( unary_not( mytt ) );
-
-  //Constraints for on_set
-  for ( cube i : on_set )
+if ( true)
   {
-    j = 0;
-    for ( int k = 0; k < num_vars; k++ )
-    {
-      //I control if the variable is present in the cube
-      if ( i.get_mask( k ) == 1 )
-      {
-        colno[j] = k + 1;
-        row[j] = 1;
-        j++;
-      }
-    }
-    colno[j] = T;
-    row[j] = -1;
-    j++;
-    add_constraintex( lp, j, row, colno, GE, 0.0 );
-  }
+    //I take on and off set
+    std::vector<cube> on_set = isop( mytt );
+    std::vector<cube> off_set = isop( unary_not( mytt ) );
 
-  //constraints for offset
-  for ( cube i : off_set )
-  {
-    j = 0;
-    for ( int k = 0; k < num_vars; k++ )
+    //Constraints for on_set
+    for ( cube i : on_set )
     {
-      if ( i.get_mask( k ) == 0 ) //variable not in the cube
+      j = 0;
+      for ( int k = 0; k < num_vars; k++ )
       {
-        colno[j] = k + 1;
-        row[j] = 1;
-        j++;
+        //I control if the variable is present in the cube
+        if ( i.get_mask( k ) == 1 )
+        {
+          colno[j] = k + 1;
+          row[j] = 1;
+          j++;
+        }
       }
+      colno[j] = T;
+      row[j] = -1;
+      j++;
+      add_constraintex( lp, j, row, colno, GE, 0.0 );
     }
-    colno[j] = T;
-    row[j] = -1;
-    j++;
-    add_constraintex( lp, j, row, colno, LE, -1.0 );
-  }
 
+    //constraints for offset
+    for ( cube i : off_set )
+    {
+      j = 0;
+      for ( int k = 0; k < num_vars; k++ )
+      {
+        if ( i.get_mask( k ) == 0 ) //variable not in the cube
+        {
+          colno[j] = k + 1;
+          row[j] = 1;
+          j++;
+        }
+      }
+      colno[j] = T;
+      row[j] = -1;
+      j++;
+      add_constraintex( lp, j, row, colno, LE, -1.0 );
+    }
+  }
   //Make variables integer
    for ( int i = 1; i < Ncol+1; i++ )
   {
@@ -213,12 +214,12 @@ bool is_threshold( const TT& tt, std::vector<int64_t>* plf = nullptr )
   get_variables(lp,row);
 
 /* free allocated memory */
- /* if(row != NULL)
-    free(row);
+ // if(row != NULL)
+//    free(row);
   if(colno != NULL)
     free(colno);
-*/
-  if(lp != NULL) {
+
+ if(lp != NULL) {
     /* clean up such that all used memory by lpsolve is freed */
     delete_lp(lp);
   }
