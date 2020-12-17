@@ -65,7 +65,7 @@ bool is_threshold( const TT& tt, std::vector<int64_t>* plf = nullptr )
   /*check unteness for each variable and in case flip xi*/
   for ( int i = 0u; i < num_vars; ++i )
   {
-    //controllo la funzione
+    //check of the function
 
     // auto num_vars= tt.num_vars();
     bool su = false, giu = false;
@@ -100,7 +100,7 @@ bool is_threshold( const TT& tt, std::vector<int64_t>* plf = nullptr )
   lprec* lp = NULL;
   int Ncol, *colno = NULL, j, sol = 0;
   REAL* row = NULL;
-  Ncol = num_vars + 1; //+1 to invlude T
+  Ncol = num_vars + 1; //+1 to include T
   const int T = Ncol;
   lp = make_lp( 0, Ncol );
 
@@ -116,11 +116,12 @@ bool is_threshold( const TT& tt, std::vector<int64_t>* plf = nullptr )
   if ( ( colno == NULL ) || ( row == NULL ) )
     return false;
 
-  set_add_rowmode( lp, TRUE ); /* makes building the model faster if it is done rows by row */
+  set_add_rowmode( lp, TRUE ); /* in order to create lp row by row */
 
   //I take on and off set
   std::vector<cube> on_set = isop( mytt );
   std::vector<cube> off_set = isop( unary_not( mytt ) );
+
 //Constraints for on_set
   for ( cube i : on_set )
   {
@@ -160,23 +161,6 @@ bool is_threshold( const TT& tt, std::vector<int64_t>* plf = nullptr )
     add_constraintex( lp, j, row, colno, LE, -1 );
   }
 
-  //Make variables integer
-  // for ( int i = 1; i < Ncol + 1; i++ )
-  // {
-  //   set_int( lp, i, TRUE );
-  // }
-
-  //all greater than 0
-
-  // for ( int i = 1; i < num_vars + 2; i++ )
-  // {
-  //   for ( int l = 0; l< num_vars+2 ; l++){
-  //     row[l]=0.0;
-  //   }
-  //   row[i]=1.0;
-  //   add_constraint(lp,row,GE,0.0);
-  // }
-
   set_add_rowmode( lp, FALSE );
 
   //sum of all variables plus T
@@ -190,7 +174,7 @@ bool is_threshold( const TT& tt, std::vector<int64_t>* plf = nullptr )
   }
   set_obj_fnex( lp, Ncol, row, colno );
 
-  /* set the object direction to ìminimze */
+  /* set the object direction to minimize */
   set_minim( lp );
   set_verbose( lp, IMPORTANT );
 
@@ -204,10 +188,6 @@ bool is_threshold( const TT& tt, std::vector<int64_t>* plf = nullptr )
   //get variable values
 
   get_variables( lp, row );
-  // if(lp != NULL) {
-  /* clean up such that all used memory by lpsolve is freed */
-  //  delete_lp(lp);
-  // }
 
   //forming the linear form
 
@@ -230,12 +210,16 @@ bool is_threshold( const TT& tt, std::vector<int64_t>* plf = nullptr )
     *plf = linear_form;
   }
 
-  /* free allocated memory */
+  /* free memory used during lp */
   if ( row != NULL )
     free( row );
   if ( colno != NULL )
     free( colno );
-  delete_lp( lp );
+  if(lp != NULL)
+  {
+    /* clean up such that all used memory by lpsolve is freed */
+    delete_lp( lp );
+  }
 
   return true;
 }
