@@ -1,4 +1,3 @@
-
 /* kitty: C++ truth table library
  * Copyright (C) 2017-2020  EPFL
  *
@@ -121,6 +120,8 @@ bool is_threshold( const TT& tt, std::vector<int64_t>* plf = nullptr )
   //I take on and off set
   std::vector<cube> on_set = isop( mytt );
   std::vector<cube> off_set = isop( unary_not( mytt ) );
+  /* in substitution to isop the function get_prim_implicants_morreale
+   * could be used */
 
 //Constraints for on_set
   for ( cube i : on_set )
@@ -132,11 +133,13 @@ bool is_threshold( const TT& tt, std::vector<int64_t>* plf = nullptr )
       if ( i.get_mask( k ) == 1 )
       {
         colno[j] = k + 1;
+        /*put row[j]=1 since all variables in the sum must be summed */
         row[j] = 1;
         j++;
       }
     }
     colno[j] = T;
+    /*-1 because T is brougth to the other member */
     row[j] = -1;
     j++;
     add_constraintex( lp, j, row, colno, GE, 0 );
@@ -148,6 +151,7 @@ bool is_threshold( const TT& tt, std::vector<int64_t>* plf = nullptr )
     j = 0;
     for ( int k = 0; k < num_vars; k++ )
     {
+      /*practically the same as before */
       if ( i.get_mask( k ) == 0 ) //variable not in the cube
       {
         colno[j] = k + 1;
@@ -161,6 +165,11 @@ bool is_threshold( const TT& tt, std::vector<int64_t>* plf = nullptr )
     add_constraintex( lp, j, row, colno, LE, -1 );
   }
 
+  /*it is not necessary to add the constraint
+   * about the positivity of all variables
+   * since it is ste by default by the lp
+   * solver */
+
   set_add_rowmode( lp, FALSE );
 
   //sum of all variables plus T
@@ -169,16 +178,20 @@ bool is_threshold( const TT& tt, std::vector<int64_t>* plf = nullptr )
   for ( int k = 0; k < Ncol; k++ )
   {
     colno[k] = k + 1;
-
+     /* 1 in order to sum all variables */
     row[k] = 1;
   }
   set_obj_fnex( lp, Ncol, row, colno );
 
   /* set the object direction to minimize */
   set_minim( lp );
+  /*the minimization is not mandatory:
+   * in fact, by default, the solver
+   * considers a minimization problem */
+
   set_verbose( lp, IMPORTANT );
 
-  print_lp( lp );
+ // print_lp( lp );
 
   sol = solve( lp );
   //if it is not a TF return out
@@ -186,16 +199,15 @@ bool is_threshold( const TT& tt, std::vector<int64_t>* plf = nullptr )
     return false;
 
   //get variable values
-
   get_variables( lp, row );
 
   //forming the linear form
-
   for ( int i = 0; i < Ncol; i++ )
   {
+    /* first I form linear form */
     linear_form.push_back( row[i] );
   }
-  //change negated variables
+  //then I change negated variables stored in var_inv
   for ( int i = 0; i < num_vars; i++ )
   {
     if ( var_inv[i] == true )
@@ -210,7 +222,7 @@ bool is_threshold( const TT& tt, std::vector<int64_t>* plf = nullptr )
     *plf = linear_form;
   }
 
-  /* free memory used during lp */
+  /* at the end of the algorithm I free memory used during lp */
   if ( row != NULL )
     free( row );
   if ( colno != NULL )
